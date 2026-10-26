@@ -1,0 +1,61 @@
+
+def make_boxes(chocolates):
+    boxes = []
+    used = []
+
+    for box_num in range(25):
+        box = []
+
+        for number in chocolates:
+            if number not in used:
+                cocoa = chocolates[number][0]
+                shape = chocolates[number][1]
+                filling = chocolates[number][2]
+                topping = chocolates[number][3]
+
+                valid = True
+
+                for other in box:
+                    truffle = chocolates[other]
+
+                    if chocolates[number] == truffle:
+                        valid = False
+
+                    if filling == "caramel" and truffle[2] == "vanilla":
+                        valid = False
+                    if filling == "vanilla" and truffle[2] == "caramel":
+                        valid = False
+
+                    if topping == "sprinkles" and truffle[3] == "nuts":
+                        valid = False
+                    if topping == "nuts" and truffle[3] == "sprinkles":
+                        valid = False
+
+                    if shape == "square" and truffle[1] == "rectangle":
+                        valid = False
+                    if shape == "rectangle" and truffle[1] == "square":
+                        valid = False
+
+                dark_count = 0
+                for other in box:
+                    if chocolates[other][0] == "dark":
+                        dark_count += 1
+
+                if cocoa == "dark" and dark_count >= 3:
+                    valid = False
+
+                if len(box) - dark_count >= 2 and cocoa != "dark":
+                    valid = False
+
+                if valid:
+                    box.append(number)
+
+                if len(box) == 4:
+                    break
+
+        boxes.append(box)
+
+        for number in box:
+            used.append(number)
+
+    return boxes
