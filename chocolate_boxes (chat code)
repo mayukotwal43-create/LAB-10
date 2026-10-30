@@ -1,61 +1,241 @@
 
+# By submitting this assignment, I agree to the following:
+#   "Aggies do not lie, cheat, or steal, or tolerate those who do."
+#   "I have not given or received any unauthorized aid on this assignment."
+#
+# Names:        Micah Kadiri
+#               Benjamin Hatch
+#               Ajay Palanisamy
+#               Hudson Dobb
+#               Mayu Kotwal
+# Section:      508
+# Assignment:   Lab Topic 10 (Team)
+# Date:         26 October 2026
+
+
+
+# N
+
+import random
+import time
+
+BOX_SIZE = 4
+
+
 def make_boxes(chocolates):
-    boxes = []
-    used = []
+    ids = list(chocolates)
+    num_boxes = len(ids) // BOX_SIZE
 
-    for box_num in range(25):
-        box = []
+    rules = [
+        (2, {"caramel", "vanilla"}),
+        (2, {"toffee", "coconut"}),
+        (3, {"nuts", "sprinkles"}),
+        (3, {"white chocolate drizzle", "dark chocolate drizzle"}),
+        (1, {"square", "rectangle"}),
+        (1, {"round", "heart"})
+    ]
 
-        for number in chocolates:
-            if number not in used:
-                cocoa = chocolates[number][0]
-                shape = chocolates[number][1]
-                filling = chocolates[number][2]
-                topping = chocolates[number][3]
+    def compatible(box, t):
+        a = chocolates[t]
+        items = [chocolates[i] for i in box] + [a]
+        if a in items[:-1]:
+            return False
+        if any(pair <= {v[k] for v in items} for k, pair in rules):
+            return False
+        return all(sum(v[0] == c for v in items) <= 3
+                   for c in ("dark", "white"))
 
-                valid = True
+    def attempt(limit):
+        colors = [[i for i in ids if chocolates[i][0] == c]
+                  for c in ("dark", "white", "milk")]
+        for group in colors:
+            random.shuffle(group)
 
-                for other in box:
-                    truffle = chocolates[other]
+        boxes, nodes = [], [0]
 
-                    if chocolates[number] == truffle:
-                        valid = False
+        def group_color(remaining, join):
+            if not remaining:
+                return True
+            nodes[0] += 1
+            if nodes[0] > limit:
+                return False
 
-                    if filling == "caramel" and truffle[2] == "vanilla":
-                        valid = False
-                    if filling == "vanilla" and truffle[2] == "caramel":
-                        valid = False
+            sizes = [2, 3]
+            random.shuffle(sizes)
+            for size in sizes:
+                if len(remaining) >= size:
+                    if build([remaining[0]], remaining[1:],
+                             size, remaining, join):
+                        return True
+            return False
 
-                    if topping == "sprinkles" and truffle[3] == "nuts":
-                        valid = False
-                    if topping == "nuts" and truffle[3] == "sprinkles":
-                        valid = False
+        def build(group, pool, size, remaining, join):
+            if len(group) == size:
+                left = [i for i in remaining if i not in group]
+                targets = [-1] if len(boxes) < num_boxes else []
+                if join and size == 2:
+                    targets += [
+                        i for i, b in enumerate(boxes)
+                        if len(b) == 2 and all(
+                            chocolates[t][0] == "dark" for t in b)
+                    ]
+                random.shuffle(targets)
 
-                    if shape == "square" and truffle[1] == "rectangle":
-                        valid = False
-                    if shape == "rectangle" and truffle[1] == "square":
-                        valid = False
+                for i in targets:
+                    if i == -1:
+                        boxes.append(group[:])
+                        if group_color(left, join):
+                            return True
+                        boxes.pop()
+                    else:
+                        old = boxes[i]
+                        trial = old[:]
+                        if all(compatible(trial[:j + len(old)], t)
+                               for j, t in enumerate(group)):
+                            boxes[i] = old + group
+                            if group_color(left, join):
+                                return True
+                            boxes[i] = old
+                return False
 
-                dark_count = 0
-                for other in box:
-                    if chocolates[other][0] == "dark":
-                        dark_count += 1
+            for j, t in enumerate(pool):
+                nodes[0] += 1
+                if nodes[0] > limit:
+                    return False
+                if compatible(group, t):
+                    group.append(t)
+                    if build(group, pool[j + 1:], size, remaining, join):
+                        return True
+                    group.pop()
+            return False
 
-                if cocoa == "dark" and dark_count >= 3:
-                    valid = False
+        if not group_color(colors[0], False):
+            return None
+        if not group_color(colors[1], True):
+            return None
 
-                if len(box) - dark_count >= 2 and cocoa != "dark":
-                    valid = False
+        boxes.extend([[] for _ in range(num_boxes - len(boxes))])
 
-                if valid:
-                    box.append(number)
+        def fill(remaining):
+            if not remaining:
+                return True
+            nodes[0] += 1
+            if nodes[0] > limit:
+                return False
 
-                if len(box) == 4:
+            options = {}
+            for t in remaining:
+                choices, empty = [], False
+                for i, b in enumerate(boxes):
+                    if len(b) == BOX_SIZE:
+                        continue
+                    if not b:
+                        if empty:
+                            continue
+                        empty = True
+                    if compatible(b, t):
+                        choices.append(i)
+                if not choices:
+                    return False
+                options[t] = choices
+
+            t = min(options, key=lambda x: len(options[x]))
+            choices = options[t]
+            random.shuffle(choices)
+
+            for i in choices:
+                boxes[i].append(t)
+                if fill([x for x in remaining if x != t]):
+                    return True
+                boxes[i].pop()
+            return False
+
+        return boxes if fill(colors[2]) else None
+
+    start = time.time()
+    while time.time() - start < 1.5:
+        result = attempt(20000)
+        if result is not None:
+            return result
+
+    return local_search(chocolates, ids, num_boxes, 40)
+
+
+def local_search(chocolates, ids, num_boxes, time_limit):
+    n = len(ids)
+    info = [chocolates[i] for i in ids]
+
+    rules = [
+        (2, {"caramel", "vanilla"}),
+        (2, {"toffee", "coconut"}),
+        (3, {"nuts", "sprinkles"}),
+        (3, {"white chocolate drizzle", "dark chocolate drizzle"}),
+        (1, {"square", "rectangle"}),
+        (1, {"round", "heart"})
+    ]
+
+    conflict = [
+        [
+            i != j and (
+                info[i] == info[j] or
+                any({info[i][k], info[j][k]} == pair
+                    for k, pair in rules)
+            )
+            for j in range(n)
+        ]
+        for i in range(n)
+    ]
+
+    def box_cost(box):
+        items = [info[i] for i in box]
+        cost = sum(conflict[box[i]][box[j]]
+                   for i in range(len(box))
+                   for j in range(i))
+        for color in ("dark", "white"):
+            count = sum(a[0] == color for a in items)
+            cost += (1 if count == 1 else max(0, count - 3))
+        return cost
+
+    start = time.time()
+    while time.time() - start < time_limit:
+        order = list(range(n))
+        random.shuffle(order)
+        boxes = [order[i:i + BOX_SIZE]
+                 for i in range(0, n, BOX_SIZE)]
+        costs = [box_cost(b) for b in boxes]
+        total = sum(costs)
+        temp = 0.4
+
+        for step in range(300000):
+            if total == 0:
+                return [[ids[i] for i in b] for b in boxes]
+            if step % 2000 == 0 and time.time() - start > time_limit:
+                break
+
+            b1 = random.randrange(num_boxes)
+            for _ in range(30):
+                if costs[b1]:
                     break
+                b1 = random.randrange(num_boxes)
 
-        boxes.append(box)
+            b2 = random.randrange(num_boxes)
+            if b1 == b2:
+                continue
 
-        for number in box:
-            used.append(number)
+            p, q = random.randrange(BOX_SIZE), random.randrange(BOX_SIZE)
+            a, b = boxes[b1], boxes[b2]
+            a[p], b[q] = b[q], a[p]
 
-    return boxes
+            c1, c2 = box_cost(a), box_cost(b)
+            delta = c1 + c2 - costs[b1] - costs[b2]
+
+            if delta <= 0 or random.random() < 2.718281828 ** (-delta / temp):
+                costs[b1], costs[b2] = c1, c2
+                total += delta
+            else:
+                a[p], b[q] = b[q], a[p]
+
+        if total == 0:
+            return [[ids[i] for i in b] for b in boxes]
+
+    return None
