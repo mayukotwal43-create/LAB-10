@@ -1,1 +1,41 @@
-
+# By submitting this assignment, I agree to the following:
+#   "Aggies do not lie, cheat, or steal, or tolerate those who do."
+#   "I have not given or received any unauthorized aid on this assignment."
+#
+# Names:        Micah Kadiri
+#               Benjamin Hatch
+#               Ajay Palanisamy
+#               Hudson Dobb
+#               Mayu Kotwal
+# Section:      508
+# Assignment:   Lab Topic 11 (Team)
+# Date:         11 November 2026
+#
+# My Code
+xp = input("Enter the name of the file: ")
+fp = open(xp)
+passports = fp.read().strip().split("\n\n")
+fp.close()
+ 
+req = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "cid"]
+count = 0
+out = open("valid_passports.txt", "w")
+ 
+for p in passports:
+    keys = []
+    for field in p.split():
+        keys.append(field.split(":")[0])
+ 
+    valid = True
+    for r in req:
+        if r not in keys:
+            valid = False
+ 
+    if valid:
+        if count > 0:
+            out.write("\n")
+        out.write(p.strip() + "\n")
+        count += 1
+ 
+out.close()
+print(f"There are {count} valid passports")
