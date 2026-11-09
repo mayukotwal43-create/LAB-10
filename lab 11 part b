@@ -1,1 +1,92 @@
 
+def valid_year(value, minimum, maximum):
+    return (len(value) == 4 and value.isdigit()
+            and minimum <= int(value) <= maximum)
+
+
+def valid_height(value):
+    if value.endswith("cm"):
+        number = value[:-2]
+        return number.isdigit() and 150 <= int(number) <= 193
+
+    if value.endswith("in"):
+        number = value[:-2]
+        return number.isdigit() and 59 <= int(number) <= 76
+
+    return False
+
+
+def valid_hair(value):
+    if len(value) != 7 or value[0] != "#":
+        return False
+
+    for character in value[1:]:
+        if character not in "0123456789abcdef":
+            return False
+
+    return True
+
+
+def valid_country(value):
+    return len(value) == 3 and value.isdigit() and value[0] != "0"
+
+
+def valid_passport(fields):
+    required = ["byr", "iyr", "eyr", "hgt", "hcl", "ecl", "cid"]
+
+    for field in required:
+        if field not in fields:
+            return False
+
+    if not valid_year(fields["byr"], 1922, 2010):
+        return False
+
+    if not valid_year(fields["iyr"], 2016, 2026):
+        return False
+
+    if not valid_year(fields["eyr"], 2026, 2036):
+        return False
+
+    if not valid_height(fields["hgt"]):
+        return False
+
+    if not valid_hair(fields["hcl"]):
+        return False
+
+    if fields["ecl"] not in ["amb", "blu", "brn",
+                            "gry", "grn", "hzl", "oth"]:
+        return False
+
+    if not valid_country(fields["cid"]):
+        return False
+
+    return True
+
+
+filename = input("Enter the name of the file: ")
+
+with open(filename, "r") as infile:
+    contents = infile.read()
+
+passports = contents.strip().split("\n\n")
+valid_passports = []
+
+for passport in passports:
+    fields = {}
+
+    for item in passport.split():
+        pieces = item.split(":", 1)
+
+        if len(pieces) == 2:
+            fields[pieces[0]] = pieces[1]
+
+    if valid_passport(fields):
+        valid_passports.append(passport)
+
+with open("valid_passports2.txt", "w") as outfile:
+    outfile.write("\n\n".join(valid_passports))
+
+    if len(valid_passports) > 0:
+        outfile.write("\n")
+
+print(f"There are {len(valid_passports)} valid passports")
