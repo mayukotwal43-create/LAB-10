@@ -1,1 +1,69 @@
+# By submitting this assignment, I agree to the following:
+#   "Aggies do not lie, cheat, or steal, or tolerate those who do."
+#   "I have not given or received any unauthorized aid on this assignment."
+#
+# Names:        Micah Kadiri
+#               Benjamin Hatch
+#               Ajay Palanisamy
+#               Hudson Dobb
+#               Mayu Kotwal
+# Section:      508
+# Assignment:   Lab Topic 12 (Team)
+# Date:         11 November 2026
+
+# As a team, we have gone through all required sections of the 
+# tutorial, and each team member understands the material
+import numpy as np
+import matplotlib.pyplot as plt
+
+# plot 1
+x1 = np.linspace(-2, 2, 200)
+f_small = 2
+f_large = 6
+y_f2 = x1 ** 2 / (4 * f_small)
+y_f6 = x1 ** 2 / (4 * f_large)
+
+plt.figure(1)
+plt.plot(x1, y_f2, color='blue', linewidth=2, label='f = 2')
+plt.plot(x1, y_f6, color='red', linewidth=6, label='f = 6')
+plt.title('Parabolas with Different Focal Lengths')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+
+
+# plot 2
+x2 = np.linspace(-4, 4, 25)
+y2 = 2 * x2 ** 3 + 3 * x2 ** 2 - 11 * x2 - 6
+
+plt.figure(2)
+plt.plot(x2, y2, color='green', marker='o', markersize=6,
+         markeredgecolor='black', linestyle='None', label='y = 2x³ + 3x² - 11x - 6')
+plt.title('Cubic Polynomial Data Points')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+
+# plot 3 
+x3 = np.linspace(-2 * np.pi, 2 * np.pi, 400)
+
+fig3, (ax_sin, ax_cos) = plt.subplots(2, 1, sharex=True)
+
+ax_sin.plot(x3, np.sin(x3), color='purple', linewidth=2, label='sin(x)')
+ax_sin.set_title('Sine Function')
+ax_sin.set_ylabel('sin(x)')
+ax_sin.grid(True)
+ax_sin.legend()
+
+ax_cos.plot(x3, np.cos(x3), color='orange', linewidth=2, label='cos(x)')
+ax_cos.set_title('Cosine Function')
+ax_cos.set_xlabel('x (radians)')
+ax_cos.set_ylabel('cos(x)')
+ax_cos.grid(True)
+ax_cos.legend()
+
+fig3.tight_layout()
+
+# Display all three figures (each in its own window)
+plt.show()
 
